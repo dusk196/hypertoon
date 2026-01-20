@@ -51,5 +51,8 @@
   "dependencies": {
     "@toon-format/toon": "^2.1.0",
     "json-toon": "^1.0.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }
