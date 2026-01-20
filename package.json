@@ -1,0 +1,55 @@
+{
+  "name": "hypertoon",
+  "version": "1.0.0",
+  "description": "High-performance, type-safe TOON (Token-Oriented Object Notation) converter. Faster than light.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bunup ./src/index.ts --minify",
+    "test": "bun test",
+    "prepublishOnly": "bun run build",
+    "benchmark": "bun run benchmark.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dusk196/toon-json"
+  },
+  "keywords": [
+    "json",
+    "toon",
+    "converter",
+    "parser",
+    "serializer",
+    "tabular",
+    "compression",
+    "optimization",
+    "bun",
+    "typescript",
+    "hypertoon"
+  ],
+  "author": "Sayantan",
+  "license": "MIT",
+  "devDependencies": {
+    "bun-types": "latest",
+    "bunup": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@toon-format/toon": "^2.1.0",
+    "json-toon": "^1.0.3"
+  }
+}
