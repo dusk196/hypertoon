@@ -117,8 +117,8 @@ function parseTabularArray(ctx: Ctx, headers: string[], minIndent: number): unkn
         const lineContent = ctx.input.substring(ctx.pos + indent, lineEnd).trim();
         consumeLine(ctx);
 
-        // CSV split
-        const values = lineContent.split(',').map(s => s.trim());
+        // Smart Split
+        const values = splitSmart(lineContent, ',');
         const rowObj: Record<string, unknown> = {};
 
         headers.forEach((h, i) => {
@@ -129,6 +129,49 @@ function parseTabularArray(ctx: Ctx, headers: string[], minIndent: number): unkn
         result.push(rowObj);
     }
     return result;
+}
+
+function splitSmart(str: string, delimiter: string): string[] {
+    const tokens: string[] = [];
+    let current = '';
+    let inQuote = false;
+    let braceDepth = 0;
+    let bracketDepth = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+
+        if (inQuote) {
+            current += char;
+            if (char === '"' && str[i - 1] !== '\\') {
+                inQuote = false;
+            }
+        } else {
+            if (char === '"') {
+                inQuote = true;
+                current += char;
+            } else if (char === '{') {
+                braceDepth++;
+                current += char;
+            } else if (char === '}') {
+                braceDepth--;
+                current += char;
+            } else if (char === '[') {
+                bracketDepth++;
+                current += char;
+            } else if (char === ']') {
+                bracketDepth--;
+                current += char;
+            } else if (char === delimiter && braceDepth === 0 && bracketDepth === 0) {
+                tokens.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+    }
+    tokens.push(current.trim());
+    return tokens;
 }
 
 function parseListArray(ctx: Ctx, minIndent: number): unknown[] {
@@ -264,6 +307,16 @@ function parsePrimitive(val: string): unknown {
     if (val === 'false') return false;
     if (val === 'null') return null;
     if (!isNaN(Number(val)) && val.trim() !== '') return Number(val);
+
+    // JSON Object/Array
+    if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
+        try {
+            return JSON.parse(val);
+        } catch (e) {
+            // ignore
+        }
+    }
+
     if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
         return val.slice(1, -1);
     }

@@ -1,6 +1,6 @@
 # HyperToon 🚀
 
-**HyperToon** is the fastest and lightest **TOON** (Token-Oriented Object Notation) converter for JavaScript/TypeScript.
+**HyperToon** is a high-performance, type-safe converter for **TOON** (Token-Oriented Object Notation).
 
 It is designed for high-throughput applications where **speed** and **bundle size** are critical.
 
@@ -11,11 +11,11 @@ We compared `hypertoon` against the Official `@toon-format/toon` and the leading
 | Metric | HyperToon | Competitor (`json-toon`) | Official (`@toon-format`) |
 |--------|-----------|--------------------------|---------------------------|
 | **Bundle Size** | **🚀 3.5 KB** | 4.6 KB | 65.0 KB |
-| **Parse Speed** | **⚡ 110 ops/s** | 44 ops/s | 10 ops/s |
-| **Serialize Speed**| **⚡ 144 ops/s** | 98 ops/s | 19 ops/s |
+| **Serialize Speed**| **⚡ 160 ops/s** | 92 ops/s | 19 ops/s |
+| **Parse Speed** | **44 ops/s** | 46 ops/s | 10 ops/s |
 | **Compression (Flat)** | 58% Savings | **64% Savings** | 61% Savings |
 
-> **Verdict**: HyperToon is **2x faster** than the nearest competitor and **10x faster** than the official library, while being the **smallest package**.
+> **Verdict**: HyperToon is **~75% faster at serialization** than the nearest competitor and **8x faster** than the official library, while being the **smallest package**.
 
 ## Features
 
@@ -23,6 +23,7 @@ We compared `hypertoon` against the Official `@toon-format/toon` and the leading
 - 🦕 **Bun Native**: Built with Bun for speed and modern standards.
 - 🔒 **Type-Safe**: `jsonify<T>()` provides full TypeScript support.
 - ✨ **Official Syntax**: Fully compliant with TOON `key: value` specification.
+- 🛡️ **Robust**: Handles complex nested JSON objects within tabular rows.
 
 ## Installation
 
