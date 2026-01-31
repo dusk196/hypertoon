@@ -32,11 +32,17 @@
     "typescript",
     "hypertoon"
   ],
-  "author": "Sayantan",
+  "author": {
+    "name": "Sayantan Roy",
+    "email": "sayantan.roy94@gmail.com",
+    "url": "https://lazyguy.in/"
+  },
   "license": "MIT",
   "devDependencies": {
+    "@toon-format/toon": "^2.1.0",
     "bun-types": "latest",
-    "bunup": "latest"
+    "bunup": "latest",
+    "json-toon": "^1.0.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -47,10 +53,6 @@
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
-  },
-  "dependencies": {
-    "@toon-format/toon": "^2.1.0",
-    "json-toon": "^1.0.3"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

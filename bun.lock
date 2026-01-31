@@ -4,13 +4,11 @@
   "workspaces": {
     "": {
       "name": "project-a",
-      "dependencies": {
-        "@toon-format/toon": "^2.1.0",
-        "json-toon": "^1.0.3",
-      },
       "devDependencies": {
+        "@toon-format/toon": "^2.1.0",
         "bun-types": "latest",
         "bunup": "latest",
+        "json-toon": "^1.0.3",
       },
       "peerDependencies": {
         "typescript": "^5.0.0",
