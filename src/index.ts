@@ -12,6 +12,8 @@ import { toToon } from './stringify';
  * const toon = toonify({ name: "John", age: 30 });
  * // From JSON string
  * const toon2 = toonify('{"name": "John", "age": 30}');
+ * // Result: name: John
+ * //         age: 30
  * ```
  */
 export function toonify(data: unknown | string): string {
