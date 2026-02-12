@@ -15,11 +15,21 @@ We compared `hypertoon` against the Official `@toon-format/toon` and the leading
 | Metric | HyperToon | Competitor (`json-toon`) | Official (`@toon-format`) |
 |--------|-----------|--------------------------|---------------------------|
 | **Bundle Size** | **🚀 3.5 KB** | 4.6 KB | 65.0 KB |
-| **Serialize Speed**| **⚡ 119 ops/s** | 82 ops/s | 16 ops/s |
-| **Parse Speed** | **40 ops/s** | 38 ops/s | 9 ops/s |
-| **Compression (Flat)** | 58% Savings | **64% Savings** | 61% Savings |
+| **Serialize Speed**| **⚡ 99 ops/s** | 87 ops/s | 15 ops/s |
+| **Parse Speed** | **38 ops/s** | 35 ops/s | 9 ops/s |
+| **Payload (Standard)** | 1.05 MB | **0.69 MB** | 1.63 MB |
+| **Payload (Flat)** | 293 KB | **254 KB** | 274 KB |
 
-> **Verdict**: HyperToon is **~45% faster at serialization** than the nearest competitor and **7x faster** than the official library, while being the **smallest package**.
+> **Verdict**: HyperToon is **~14% faster at serialization** than the nearest competitor and **~6x faster** than the official library, while being the **smallest package**.
+
+## Why Use Hypertoon?
+
+Hypertoon isn't just another configuration format parser—it's engineered for scale.
+
+1.  **Massive Scale**: When processing millions of records, every millisecond counts. Hypertoon's cursor-based parser avoids the garbage collection pauses that plague standard JSON parsers.
+2.  **Bandwidth Savings**: TOON's unique tabular compression for arrays of objects can reduce bandwidth usage by up to 60% compared to JSON, without the CPU overhead of gzip.
+3.  **No Lock-in**: Fully compatible with the standard TOON specification, so you can switch parsers if needed—but you won't want to.
+4.  **Developer Experience**: With `jsonify<T>()`, you get compile-time type safety out of the box. No more runtime surprises from malformed config files.
 
 ## Features
 
