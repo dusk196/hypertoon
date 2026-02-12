@@ -107,8 +107,8 @@ console.log(`Competitor: ${(fCompSize / 1024).toFixed(2)} KB (${((1 - fCompSize 
 
 // 5. Bundle Size (Hardcoded from file system check)
 console.log('\n📦 Bundle Size (Minified):');
-console.log('HyperToon:  3.5 KB');
+console.log('HyperToon:  4.5 KB');
 console.log('Competitor: 4.6 KB');
-console.log('Official:   65.0 KB');
+console.log('Official:   25.0 KB');
 
 console.log('\nDone.');
