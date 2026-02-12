@@ -3,79 +3,101 @@ import { test, expect, describe } from 'bun:test';
 import { toonify, jsonify } from './src/index';
 
 const userJson = {
-    "project_id": "PRJ-2026-X1",
-    "project_name": "Titanium Upgrade",
-    "is_active": true,
-    "budget_info": {
-        "total_allocated": 50000,
-        "currency": "USD",
-        "spent": 12500.50
+    "test_metadata": {
+        "description": "Comprehensive JSON Data Types Test",
+        "generated_at_timestamp": 1715421200,
+        "is_active": true
     },
-    "tags": [
-        "infrastructure",
-        "security",
-        "cloud-migration"
-    ],
-    "team_members": [
-        {
-            "id": 101,
-            "name": "Sarah Chen",
-            "role": "Lead Engineer",
-            "skills": ["Python", "AWS", "Docker"]
+    "basic_types": {
+        "string_standard": "Hello World",
+        "string_empty": "",
+        "integer": 42,
+        "integer_negative": -128,
+        "float": 3.1415926535,
+        "scientific_notation": 1.5e+10,
+        "boolean_true": true,
+        "boolean_false": false,
+        "null_value": null
+    },
+    "string_edge_cases": {
+        "unicode_chars": "Héllo Wörld \u00A9",
+        "emojis": "🚀 🐱👤 👨💻",
+        "escaped_chars": "Line 1\nLine 2\tTabbed\rCarriage \"Quoted\"",
+        "html_tags": "<div><span class='bold'>Text</span></div>",
+        "url": "https://api.example.com/v1/resource?query=test&sort=desc"
+    },
+    "arrays": {
+        "empty_array": [],
+        "array_of_strings": [
+            "apple",
+            "banana",
+            "cherry"
+        ],
+        "array_of_numbers": [
+            0,
+            100,
+            -50,
+            2.5
+        ],
+        "array_of_booleans": [
+            true,
+            false,
+            true
+        ],
+        "mixed_array": [
+            1,
+            "two",
+            false,
+            null,
+            { "id": 5 }
+        ],
+        "array_of_arrays_matrix": [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]
+        ],
+        "nested_mixed_arrays": [
+            ["a", "b"],
+            [1, 2],
+            [{ "x": 1 }, ["deep"]]
+        ]
+    },
+    "objects": {
+        "empty_object": {},
+        "array_of_objects": [
+            {
+                "id": 101,
+                "role": "admin",
+                "preferences": null
+            },
+            {
+                "id": 102,
+                "role": "editor",
+                "preferences": { "theme": "dark" }
+            }
+        ],
+        "nested_object": {
+            "layer_1": {
+                "layer_2": {
+                    "layer_3": {
+                        "target_value": "You found me"
+                    }
+                }
+            }
         },
-        {
-            "id": 102,
-            "name": "Marcus Wright",
-            "role": "Project Manager",
-            "skills": ["Agile", "Scrum", "Risk Management"]
+        "keys_with_spaces_and_symbols": {
+            "User ID": 12345,
+            "meta-data": "standard-kebab",
+            "$schema_version": "1.0",
+            "__private__": true
         }
-    ],
-    "milestones": [
-        {
-            "title": "Phase 1: Discovery",
-            "due_date": "2026-03-15",
-            "status": "completed"
-        },
-        {
-            "title": "Phase 2: Deployment",
-            "due_date": "2026-06-01",
-            "status": "in-progress"
-        }
-    ],
-    "metadata": null
+    },
+    "boundary_tests": {
+        "max_safe_integer": 9007199254740991,
+        "min_safe_integer": -9007199254740991,
+        "very_long_string": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    }
 };
-
-// Updated TOON expectation (Official Spec: Colons)
-const userToonExample = `
-project_id: PRJ-2026-X1 #22
-project_name: Titanium Upgrade #29
-is_active: true #14
-budget_info: #12
-    total_allocated: 50000 #25
-    currency: USD #16
-    spent: 12500.5 #17
-tags[3]: #47
-    - infrastructure
-    - security
-    - cloud-migration
-team_members[2]: #16
-    - #5
-        id: 101 #14
-        name: Sarah Chen #23
-        role: Lead Engineer #26
-        skills[3]: Python,AWS,Docker #35 Note: Inline list not natively supported in my simpler list logic, assuming block list for robust round trip or I need to update serialized structure check.
-        # Actually my serializer outputs lists as indented blocks. 
-        # But I will test round trip mainly.
-    - #5
-        id: 102 #14
-        name: Marcus Wright #26
-        role: Project Manager #28
-        skills: Agile # ...
-milestones[2]{title,due_date,status}: #37
-    Phase 1: Discovery,2026-03-15,completed #42
-    Phase 2: Deployment,2026-06-01,in-progress #45
-metadata: null #13
-`;
 
 describe('HyperToon Converter', () => {
     test('Round Trip', () => {

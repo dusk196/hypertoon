@@ -1,4 +1,3 @@
-
 export function toToon(data: unknown): string {
     return serializeObject(data, 0);
 }
@@ -16,10 +15,8 @@ function serializeObject(obj: unknown, indentLevel: number): string {
         if (value === undefined) continue;
 
         if (Array.isArray(value)) {
-            // Tabular check
             const keys = getCommonKeys(value);
             if (keys) {
-                // Tabular
                 lines.push(`${indent}${key}[${value.length}]{${keys.join(',')}}:`);
                 for (const item of value) {
                     const row = keys.map(k => {
@@ -29,7 +26,6 @@ function serializeObject(obj: unknown, indentLevel: number): string {
                     lines.push(`${indent}    ${row}`);
                 }
             } else {
-                // List
                 lines.push(`${indent}${key}[${value.length}]:`);
                 for (const item of value) {
                     if (item && typeof item === 'object') {
@@ -41,11 +37,9 @@ function serializeObject(obj: unknown, indentLevel: number): string {
                 }
             }
         } else if (value !== null && typeof value === 'object') {
-            // Nested Object
             lines.push(`${indent}${key}:`);
             lines.push(serializeObject(value, indentLevel + 1));
         } else {
-            // Primitive
             lines.push(`${indent}${key}: ${serializePrimitive(value)}`);
         }
     }
@@ -57,7 +51,10 @@ function serializePrimitive(val: unknown): string {
     if (val === null) return 'null';
     if (typeof val === 'string') {
         if (val === '') return '""';
-        if (/[,#:\n\r\[\]\{\}]/.test(val) || /^\s|\s$/.test(val)) {
+        if (!isNaN(Number(val)) && val.trim() !== '') {
+            return JSON.stringify(val);
+        }
+        if (/[,#:\n\r\[\]{}]/.test(val) || /^\s|\s$/.test(val)) {
             return JSON.stringify(val);
         }
         return val;
@@ -73,14 +70,15 @@ function getCommonKeys(arr: unknown[]): string[] | null {
     const first = arr[0];
     if (!first || typeof first !== 'object') return null;
 
+    if (Array.isArray(first)) return null;
+
     const keys = Object.keys(first as object);
     if (keys.length === 0) return null;
 
-    // Strict tabular check
     for (let i = 0; i < arr.length; i++) {
         const item = arr[i];
         if (!item || typeof item !== 'object') return null;
-        // Allow arrays/objects
+        if (Array.isArray(item)) return null;
 
         const itemKeys = Object.keys(item as object);
         if (i > 0) {

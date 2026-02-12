@@ -10,20 +10,20 @@ We compared `hypertoon` against the Official `@toon-format/toon` and the leading
 
 | Metric | HyperToon | Competitor (`json-toon`) | Official (`@toon-format`) |
 |--------|-----------|--------------------------|---------------------------|
-| **Bundle Size** | **🚀 3.5 KB** | 4.6 KB | 65.0 KB |
-| **Serialize Speed**| **⚡ 160 ops/s** | 92 ops/s | 19 ops/s |
-| **Parse Speed** | **44 ops/s** | 46 ops/s | 10 ops/s |
+| **Bundle Size** | **3.5 KB** | 4.6 KB | 65.0 KB |
+| **Serialize Speed**| **119 ops/s** | 82 ops/s | 16 ops/s |
+| **Parse Speed** | **40 ops/s** | 38 ops/s | 9 ops/s |
 | **Compression (Flat)** | 58% Savings | **64% Savings** | 61% Savings |
 
-> **Verdict**: HyperToon is **~75% faster at serialization** than the nearest competitor and **8x faster** than the official library, while being the **smallest package**.
+> **Verdict**: HyperToon is **~45% faster at serialization** than the nearest competitor and **7x faster** than the official library, while being the **smallest package**.
 
 ## Features
 
-- ⚡ **Hyper Optimized**: Cursor-based parser avoids memory spikes.
-- 🦕 **Bun Native**: Built with Bun for speed and modern standards.
-- 🔒 **Type-Safe**: `jsonify<T>()` provides full TypeScript support.
-- ✨ **Official Syntax**: Fully compliant with TOON `key: value` specification.
-- 🛡️ **Robust**: Handles complex nested JSON objects within tabular rows.
+- **Hyper Optimized**: Cursor-based parser avoids memory spikes.
+- **Bun Native**: Built with Bun for speed and modern standards.
+- **Type-Safe**: `jsonify<T>()` provides full TypeScript support.
+- **Official Syntax**: Fully compliant with TOON `key: value` specification.
+- **Robust**: Handles complex nested JSON objects within tabular rows.
 
 ## Installation
 

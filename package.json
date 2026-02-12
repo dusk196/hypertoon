@@ -1,6 +1,6 @@
 {
   "name": "hypertoon",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "High-performance, type-safe TOON (Token-Oriented Object Notation) converter. Faster than light.",
   "type": "module",
   "main": "./dist/index.js",
