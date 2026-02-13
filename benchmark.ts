@@ -105,7 +105,29 @@ console.log(`HyperToon:  ${(fHyperSize / 1024).toFixed(2)} KB (${((1 - fHyperSiz
 console.log(`Official:   ${(fOfficialSize / 1024).toFixed(2)} KB (${((1 - fOfficialSize / fJsonSize) * 100).toFixed(1)}% savings)`);
 console.log(`Competitor: ${(fCompSize / 1024).toFixed(2)} KB (${((1 - fCompSize / fJsonSize) * 100).toFixed(1)}% savings)`);
 
-// 5. Bundle Size (Hardcoded from file system check)
+// 5. Primitive Array Optimization
+console.log('\n🔢 Large Primitive Array Optimization:');
+const primitiveData = {
+    numbers: Array.from({ length: 1000 }, (_, i) => i),
+    strings: Array.from({ length: 1000 }, (_, i) => `item${i}`)
+};
+
+const pJson = JSON.stringify(primitiveData);
+const pHyper = toonify(primitiveData);
+const pOfficial = officialEncode(primitiveData);
+const pCompetitor = competitorEncode(primitiveData);
+
+const pJsonSize = Buffer.byteLength(pJson);
+const pHyperSize = Buffer.byteLength(pHyper);
+const pOfficialSize = Buffer.byteLength(pOfficial);
+const pCompSize = Buffer.byteLength(pCompetitor);
+
+console.log(`JSON:       ${(pJsonSize / 1024).toFixed(2)} KB`);
+console.log(`HyperToon:  ${(pHyperSize / 1024).toFixed(2)} KB (${((1 - pHyperSize / pJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`Official:   ${(pOfficialSize / 1024).toFixed(2)} KB (${((1 - pOfficialSize / pJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`Competitor: ${(pCompSize / 1024).toFixed(2)} KB (${((1 - pCompSize / pJsonSize) * 100).toFixed(1)}% savings)`);
+
+// 6. Bundle Size (Minified)
 console.log('\n📦 Bundle Size (Minified):');
 console.log('HyperToon:  4.5 KB');
 console.log('Competitor: 4.6 KB');

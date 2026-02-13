@@ -26,16 +26,21 @@ function serializeObject(obj: unknown, indentLevel: number): string {
                     lines.push(`${indent}  ${row}`);
                 }
             } else {
-                lines.push(`${indent}${key}[${value.length}]:`);
+                // Check if all items are primitives
                 const allPrimitives = value.every(item => !item || typeof item !== 'object');
-                for (const item of value) {
-                    if (item && typeof item === 'object') {
-                        lines.push(`${indent}  -`);
-                        lines.push(serializeObject(item, indentLevel + 2));
-                    } else {
-                        if (allPrimitives) {
-                            lines.push(`${indent}  ${serializePrimitive(item)}`);
+
+                if (allPrimitives && value.length > 0) {
+                    // Inline array: key[N]: val1,val2...
+                    const items = value.map(v => serializePrimitive(v)).join(',');
+                    lines.push(`${indent}${key}[${value.length}]: ${items}`);
+                } else {
+                    lines.push(`${indent}${key}[${value.length}]:`);
+                    for (const item of value) {
+                        if (item && typeof item === 'object') {
+                            lines.push(`${indent}  -`);
+                            lines.push(serializeObject(item, indentLevel + 2));
                         } else {
+                            // Mixed array or objects - use bullets for safety
                             lines.push(`${indent}  - ${serializePrimitive(item)}`);
                         }
                     }

@@ -2,7 +2,7 @@
 
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-red.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 **HyperToon** is a high-performance, type-safe converter for **TOON** (Token-Oriented Object Notation). It is designed for high-throughput applications where **speed** and **bundle size** are critical.
 
@@ -13,12 +13,12 @@ We compared `hypertoon` against the Official `@toon-format/toon` and the leading
 | Metric | HyperToon | Competitor (`json-toon`) | Official (`@toon-format`) |
 |--------|-----------|--------------------------|---------------------------|
 | **Bundle Size (Minified)** | **🚀 4.5 KB** | 4.6 KB | 25.0 KB |
-| **Serialize Speed**| **⚡ 127 ops/s** | 87 ops/s | 16 ops/s |
+| **Serialize Speed**| **⚡ 120 ops/s** | 87 ops/s | 16 ops/s |
 | **Parse Speed** | **40 ops/s** | 39 ops/s | 9 ops/s |
 | **Payload (Standard)** | 1.03 MB | **0.69 MB** | 1.63 MB |
 | **Payload (Flat)** | 274 KB | **254 KB** | 274 KB |
 
-> **Verdict**: HyperToon is **46% faster at serialization** than the nearest competitor and **~5x smaller** than the official library, while being the **smallest package**.
+> **Verdict**: HyperToon is **38% faster at serialization** than the nearest competitor and **~5x smaller** than the official library. It also matches the official library's compactness for primitive arrays (using inline format), outperforming the competitor by **~25%** in that specific case.
 
 ## Features
 

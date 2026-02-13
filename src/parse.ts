@@ -43,19 +43,26 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
             const key = arrayMatch[1]?.trim() ?? '';
             const headersStr = arrayMatch[3];
 
-            consumeLine(ctx);
-
             if (headersStr) {
+                // Tabular array always consumes following lines
+                consumeLine(ctx);
                 const headers = headersStr.slice(1, -1).split(',').map(h => h.trim());
                 obj[key] = parseTabularArray(ctx, headers, indent + 1);
+            } else if (valPart !== '') {
+                // Inline array: "key[N]: val1,val2"
+                consumeLine(ctx);
+                const items = splitSmart(valPart, ',');
+                obj[key] = items.map(item => parsePrimitive(stripComment(item)));
             } else {
+                // Multiline list array
+                consumeLine(ctx);
                 obj[key] = parseListArray(ctx, indent + 1);
             }
         } else {
             const key = keyPart;
-            consumeLine(ctx);
-
+            // Handle standard key-value
             if (valPart === '') {
+                consumeLine(ctx); // Consume key line
                 const nextIndent = peekIndent(ctx);
                 if (nextIndent > indent) {
                     const result = parseObjectBlock(ctx, indent);
