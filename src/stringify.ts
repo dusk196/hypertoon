@@ -9,7 +9,7 @@ function serializeObject(obj: unknown, indentLevel: number): string {
 
     const record = obj as Record<string, unknown>;
     const lines: string[] = [];
-    const indent = '    '.repeat(indentLevel);
+    const indent = '  '.repeat(indentLevel);
 
     for (const [key, value] of Object.entries(record)) {
         if (value === undefined) continue;
@@ -23,16 +23,21 @@ function serializeObject(obj: unknown, indentLevel: number): string {
                         const v = (item as any)[k];
                         return serializePrimitive(v);
                     }).join(',');
-                    lines.push(`${indent}    ${row}`);
+                    lines.push(`${indent}  ${row}`);
                 }
             } else {
                 lines.push(`${indent}${key}[${value.length}]:`);
+                const allPrimitives = value.every(item => !item || typeof item !== 'object');
                 for (const item of value) {
                     if (item && typeof item === 'object') {
-                        lines.push(`${indent}    -`);
+                        lines.push(`${indent}  -`);
                         lines.push(serializeObject(item, indentLevel + 2));
                     } else {
-                        lines.push(`${indent}    - ${serializePrimitive(item)}`);
+                        if (allPrimitives) {
+                            lines.push(`${indent}  ${serializePrimitive(item)}`);
+                        } else {
+                            lines.push(`${indent}  - ${serializePrimitive(item)}`);
+                        }
                     }
                 }
             }

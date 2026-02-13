@@ -154,17 +154,22 @@ function parseListArray(ctx: Ctx, minIndent: number): unknown[] {
         const lineEnd = getLineEnd(ctx);
         const lineContent = ctx.input.substring(ctx.pos + indent, lineEnd).trim();
 
-        if (lineContent.startsWith('-')) {
+        if (lineContent === '-' || lineContent.startsWith('- ')) {
             consumeLine(ctx);
-            const rest = lineContent.substring(1).trim();
-            if (rest === '') {
+            if (lineContent === '-') {
                 const obj = parseObjectBlock(ctx, indent);
                 result.push(normalizeArrayLikeObject(obj));
             } else {
+                const rest = lineContent.substring(2);
                 result.push(parsePrimitive(stripComment(rest)));
             }
         } else {
-            break;
+            const colonIdx = lineContent.indexOf(':');
+            if (colonIdx !== -1) {
+                break;
+            }
+            consumeLine(ctx);
+            result.push(parsePrimitive(stripComment(lineContent)));
         }
     }
     return result;
