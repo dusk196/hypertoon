@@ -110,34 +110,24 @@ function splitSmart(str: string, delimiter: string): string[] {
     const tokens: string[] = [];
     let current = '';
     let inQuote = false;
-    let braceDepth = 0;
-    let bracketDepth = 0;
+    let depth = 0;
 
     for (let i = 0; i < str.length; i++) {
         const char = str[i];
-
         if (inQuote) {
             current += char;
-            if (char === '"' && str[i - 1] !== '\\') {
-                inQuote = false;
-            }
+            if (char === '"' && str[i - 1] !== '\\') inQuote = false;
         } else {
             if (char === '"') {
                 inQuote = true;
                 current += char;
-            } else if (char === '{') {
-                braceDepth++;
+            } else if (char === '{' || char === '[') {
+                depth++;
                 current += char;
-            } else if (char === '}') {
-                braceDepth--;
+            } else if (char === '}' || char === ']') {
+                depth--;
                 current += char;
-            } else if (char === '[') {
-                bracketDepth++;
-                current += char;
-            } else if (char === ']') {
-                bracketDepth--;
-                current += char;
-            } else if (char === delimiter && braceDepth === 0 && bracketDepth === 0) {
+            } else if (char === delimiter && depth === 0) {
                 tokens.push(current.trim());
                 current = '';
             } else {
@@ -184,27 +174,17 @@ function parseListArray(ctx: Ctx, minIndent: number): unknown[] {
 }
 
 function normalizeArrayLikeObject(obj: Record<string, unknown>): unknown {
-    const keys = Object.keys(obj);
+    const len = Object.keys(obj).length;
+    if (len === 0) return obj;
+    const arr = new Array(len);
 
-    if (keys.length === 0) return obj;
-
-    const numericKeys = keys.map(k => parseInt(k, 10));
-    const allNumeric = numericKeys.every((n, i) => !isNaN(n) && keys[i] === String(n));
-
-    if (!allNumeric) return obj;
-
-    const sorted = [...numericKeys].sort((a, b) => a - b);
-    const isSequential = sorted.every((n, i) => n === i) && sorted[0] === 0;
-
-    if (!isSequential) return obj;
-
-    const arr: unknown[] = [];
-    for (let i = 0; i < keys.length; i++) {
-        const val = obj[String(i)];
+    for (let i = 0; i < len; i++) {
+        if (!(i in obj)) return obj;
+        const val = obj[i];
         if (val && typeof val === 'object' && !Array.isArray(val)) {
-            arr.push(normalizeArrayLikeObject(val as Record<string, unknown>));
+            arr[i] = normalizeArrayLikeObject(val as Record<string, unknown>);
         } else {
-            arr.push(val);
+            arr[i] = val;
         }
     }
     return arr;

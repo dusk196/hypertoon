@@ -58,43 +58,23 @@ function serializeObject(obj: unknown, indentLevel: number): string {
 }
 
 function serializePrimitive(val: unknown): string {
-    if (val === null) return 'null';
-    if (typeof val === 'string') {
-        if (val === '') return '""';
-        if (!isNaN(Number(val)) && val.trim() !== '') {
-            return JSON.stringify(val);
-        }
-        if (/[,#:\n\r\[\]{}]/.test(val) || /^\s|\s$/.test(val)) {
-            return JSON.stringify(val);
-        }
-        return val;
-    }
-    if (typeof val === 'object') {
-        return JSON.stringify(val);
-    }
+    if (typeof val === 'object' && val !== null) return JSON.stringify(val);
+    if (typeof val === 'string' && (val === '' || !isNaN(Number(val)) || /[,#:\n\r\[\]{}]|^\s|\s$/.test(val))) return JSON.stringify(val);
     return String(val);
 }
 
 function getCommonKeys(arr: unknown[]): string[] | null {
-    if (arr.length === 0) return null;
+    if (!arr.length) return null;
     const first = arr[0];
-    if (!first || typeof first !== 'object') return null;
-
-    if (Array.isArray(first)) return null;
+    if (!first || typeof first !== 'object' || Array.isArray(first)) return null;
 
     const keys = Object.keys(first as object);
-    if (keys.length === 0) return null;
+    if (!keys.length) return null;
 
-    for (let i = 0; i < arr.length; i++) {
+    for (let i = 1; i < arr.length; i++) {
         const item = arr[i];
-        if (!item || typeof item !== 'object') return null;
-        if (Array.isArray(item)) return null;
-
-        const itemKeys = Object.keys(item as object);
-        if (i > 0) {
-            if (itemKeys.length !== keys.length) return null;
-            if (!keys.every(k => k in item)) return null;
-        }
+        if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+        if (Object.keys(item as object).length !== keys.length || !keys.every(k => k in item)) return null;
     }
     return keys;
 }

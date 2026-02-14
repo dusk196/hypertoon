@@ -1,4 +1,4 @@
-
+import { gzipSync } from 'node:zlib';
 import { toonify, jsonify } from './src/index';
 // @ts-ignore
 import { encode as officialEncode, decode as officialDecode } from '@toon-format/toon';
@@ -127,10 +127,61 @@ console.log(`HyperToon:  ${(pHyperSize / 1024).toFixed(2)} KB (${((1 - pHyperSiz
 console.log(`Official:   ${(pOfficialSize / 1024).toFixed(2)} KB (${((1 - pOfficialSize / pJsonSize) * 100).toFixed(1)}% savings)`);
 console.log(`Competitor: ${(pCompSize / 1024).toFixed(2)} KB (${((1 - pCompSize / pJsonSize) * 100).toFixed(1)}% savings)`);
 
-// 6. Bundle Size (Minified)
-console.log('\n📦 Bundle Size (Minified):');
-console.log('HyperToon:  4.5 KB');
-console.log('Competitor: 4.6 KB');
-console.log('Official:   25.0 KB');
+// 6. Bundle Size (Minified & Gzipped)
+console.log('\n📦 Bundle Size:');
+
+const htPath = './dist/index.js';
+const compPath = './node_modules/json-toon/dist/index.js';
+
+let htSize = 0, htGzip = 0;
+let compSize = 0, compGzip = 0;
+
+const htFile = Bun.file(htPath);
+if (await htFile.exists()) {
+    const buf = await htFile.arrayBuffer();
+    htSize = buf.byteLength;
+    htGzip = gzipSync(new Uint8Array(buf)).length;
+}
+
+const compFile = Bun.file(compPath);
+if (await compFile.exists()) {
+    const buf = await compFile.arrayBuffer();
+    compSize = buf.byteLength;
+    compGzip = gzipSync(new Uint8Array(buf)).length;
+}
+
+const offPath = './node_modules/@toon-format/toon/dist/index.mjs';
+let offSize = 0, offGzip = 0;
+
+const offFile = Bun.file(offPath);
+if (await offFile.exists()) {
+    const buf = await offFile.arrayBuffer();
+    offSize = buf.byteLength;
+    offGzip = gzipSync(new Uint8Array(buf)).length;
+}
+
+if (htSize > 0) {
+    const minSaved = compSize > 0 ? ` (${((1 - htSize / compSize) * 100).toFixed(1)}% savings vs competitor)` : '';
+    console.log(`HyperToon  : ${(htSize / 1024).toFixed(2)} KB${minSaved}`);
+
+    const gzipSaved = compGzip > 0 ? ` (${((1 - htGzip / compGzip) * 100).toFixed(1)}% savings)` : '';
+    console.log(`Gzipped    : ${(htGzip / 1024).toFixed(2)} KB${gzipSaved}`);
+} else {
+    console.log('HyperToon  : (Build not found - run "bun run build")');
+}
+
+if (compSize > 0) {
+    console.log(`Competitor : ${(compSize / 1024).toFixed(2)} KB`);
+    console.log(`Gzipped    : ${(compGzip / 1024).toFixed(2)} KB`);
+} else {
+    console.log('Competitor : 4.6 KB (File not found - run "bun install")');
+}
+
+if (offSize > 0) {
+    console.log(`Official   : ${(offSize / 1024).toFixed(2)} KB`);
+    console.log(`Gzipped    : ${(offGzip / 1024).toFixed(2)} KB`);
+} else {
+    console.log('Official   : 25.0 KB (File not found)');
+}
 
 console.log('\nDone.');
