@@ -12,13 +12,14 @@ We compared `hypertoon` against the Official `@toon-format/toon` and the leading
 
 | Metric | HyperToon | Competitor (`json-toon`) | Official (`@toon-format`) |
 |--------|-----------|--------------------------|---------------------------|
-| **Bundle Size (Minified)** | **🚀 4.5 KB** | 4.6 KB | 25.0 KB |
+| **Bundle Size (Minified)** | **🚀 4.4 KB** | 4.5 KB | 64.4 KB |
+| **Bundle Size (Gzipped)** | **🚀 1.7 KB** | 1.7 KB | 13.2 KB |
 | **Serialize Speed**| **⚡ 120 ops/s** | 87 ops/s | 16 ops/s |
 | **Parse Speed** | **40 ops/s** | 39 ops/s | 9 ops/s |
 | **Payload (Standard)** | 1.03 MB | **0.69 MB** | 1.63 MB |
 | **Payload (Flat)** | 274 KB | **254 KB** | 274 KB |
 
-> **Verdict**: HyperToon is **38% faster at serialization** than the nearest competitor and **~5x smaller** than the official library. It also matches the official library's compactness for primitive arrays (using inline format), outperforming the competitor by **~25%** in that specific case.
+> **Verdict**: HyperToon is **~35% faster at serialization** than the nearest competitor and **~15x smaller** than the official library. It matches the competitor's Gzip size while offering superior performance and adhering to the official TOON specification.
 
 ## Features
 
