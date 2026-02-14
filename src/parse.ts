@@ -71,6 +71,7 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
                     obj[key] = {};
                 }
             } else {
+                consumeLine(ctx);
                 obj[key] = parsePrimitive(stripComment(valPart));
             }
         }
