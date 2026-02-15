@@ -106,7 +106,6 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
         const keyPart = lineContent.substring(0, colIndex).trim();
         const valPart = lineContent.substring(colIndex + 1).trim();
 
-        // Manual array-key parsing instead of regex
         let bracketStart = -1;
         for (let i = keyPart.length - 1; i >= 0; i--) {
             if (keyPart.charCodeAt(i) === 91) { bracketStart = i; break; }
@@ -140,7 +139,6 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
                         obj[key] = parseListArray(ctx, indent + 1);
                     }
                 } else {
-                    // Invalid format, treat as regular key
                     consumeLine(ctx);
                     obj[keyPart] = parsePrimitive(stripComment(valPart));
                 }
@@ -148,7 +146,6 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
             }
         }
 
-        // Standard key-value
         if (valPart === '') {
             consumeLine(ctx);
             const nextIndent = peekIndent(ctx);
@@ -194,7 +191,6 @@ function parseTabularArray(ctx: Ctx, headers: string[], minIndent: number): unkn
     return result;
 }
 
-// Index-based splitSmart: uses substring slicing instead of char-by-char concat
 function splitSmart(str: string): string[] {
     const tokens: string[] = [];
     let start = 0;

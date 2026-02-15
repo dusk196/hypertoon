@@ -7,7 +7,7 @@ import { encode as competitorEncode, decode as competitorDecode } from 'json-too
 
 console.log('🚀 Starting HyperToon Competitive Benchmarks...');
 
-// Generate Data
+
 const count = 10000;
 const data = [];
 for (let i = 0; i < count; i++) {
@@ -27,7 +27,7 @@ const wrapper = { users: data };
 
 console.log(`📝 Generated ${count} records.`);
 
-// 1. Size Comparison
+
 const jsonString = JSON.stringify(wrapper);
 const hyperString = toonify(wrapper);
 const officialString = officialEncode(wrapper);
@@ -44,7 +44,7 @@ console.log(`HyperToon:         ${(hyperSize / 1024).toFixed(2)} KB (${((1 - hyp
 console.log(`@toon-format/toon: ${(officialSize / 1024).toFixed(2)} KB (${((1 - officialSize / jsonSize) * 100).toFixed(1)}% savings)`);
 console.log(`json-toon:         ${(competitorSize / 1024).toFixed(2)} KB (${((1 - competitorSize / jsonSize) * 100).toFixed(1)}% savings)`);
 
-// 2. Serialization Speed
+
 console.log('\n⚡ Serialization Speed (ops/s):');
 
 function measure(fn: () => void, name: string) {
@@ -63,9 +63,9 @@ measure(() => officialEncode(wrapper), '@toon-format/toon');
 measure(() => competitorEncode(wrapper), 'json-toon');
 
 
-// 3. Parse Speed
+
 console.log('\n⚡ Parsing Speed (ops/s):');
-// Pre-generate strings
+
 const s1 = jsonString;
 const s2 = hyperString;
 const s3 = officialString;
@@ -77,7 +77,7 @@ measure(() => officialDecode(s3), '@toon-format/toon');
 measure(() => competitorDecode(s4), 'json-toon');
 
 
-// 4. Flat Data Optimization (Best Case)
+
 console.log('\n🌟 Flat Data Optimization (Best Case):');
 const flatData = [];
 for (let i = 0; i < count; i++) {
@@ -105,7 +105,7 @@ console.log(`HyperToon:         ${(fHyperSize / 1024).toFixed(2)} KB (${((1 - fH
 console.log(`@toon-format/toon: ${(fOfficialSize / 1024).toFixed(2)} KB (${((1 - fOfficialSize / fJsonSize) * 100).toFixed(1)}% savings)`);
 console.log(`json-toon:         ${(fCompSize / 1024).toFixed(2)} KB (${((1 - fCompSize / fJsonSize) * 100).toFixed(1)}% savings)`);
 
-// 5. Primitive Array Optimization
+
 console.log('\n🔢 Large Primitive Array Optimization:');
 const primitiveData = {
     numbers: Array.from({ length: 1000 }, (_, i) => i),
@@ -127,7 +127,7 @@ console.log(`HyperToon:         ${(pHyperSize / 1024).toFixed(2)} KB (${((1 - pH
 console.log(`@toon-format/toon: ${(pOfficialSize / 1024).toFixed(2)} KB (${((1 - pOfficialSize / pJsonSize) * 100).toFixed(1)}% savings)`);
 console.log(`json-toon:         ${(pCompSize / 1024).toFixed(2)} KB (${((1 - pCompSize / pJsonSize) * 100).toFixed(1)}% savings)`);
 
-// 6. Bundle Size (Minified & Gzipped)
+
 console.log('\n📦 Bundle Size:');
 
 const htPath = './dist/index.js';

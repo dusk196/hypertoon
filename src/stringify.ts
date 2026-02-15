@@ -1,8 +1,6 @@
-// Pre-computed indent lookup (up to 16 levels)
 const INDENTS: string[] = [];
 for (let i = 0; i < 17; i++) INDENTS[i] = '  '.repeat(i);
 
-// Hoisted regex for serializePrimitive
 const NEEDS_QUOTE = /[,#:\n\r\[\]{}]|^\s|\s$/;
 
 function getIndent(level: number): string {
@@ -40,11 +38,9 @@ function serializeObject(obj: unknown, indentLevel: number, isRoot: boolean): st
                     result += `\n${childIndent}${row}`;
                 }
             } else {
-                // Check if all items are primitives
                 const allPrimitives = value.every(item => !item || typeof item !== 'object');
 
                 if (allPrimitives && value.length > 0) {
-                    // Inline array: key[N]: val1,val2...
                     const items = value.map(v => serializePrimitive(v)).join(',');
                     result += `${indent}${key}[${value.length}]: ${items}`;
                 } else {
@@ -56,7 +52,6 @@ function serializeObject(obj: unknown, indentLevel: number, isRoot: boolean): st
                             const nested = serializeObject(item, indentLevel + 2, false);
                             if (nested.length > 0) result += `\n${nested}`;
                         } else {
-                            // Mixed array or objects - use bullets for safety
                             result += `\n${childIndent}- ${serializePrimitive(item)}`;
                         }
                     }
