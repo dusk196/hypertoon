@@ -10,20 +10,20 @@
 
 We compared `hypertoon` against the Official `@toon-format/toon` and the leading competitor `json-toon` (10,000 records).
 
-| Metric | HyperToon | Competitor (`json-toon`) | Official (`@toon-format`) |
+| Metric | HyperToon | `json-toon` | `@toon-format/toon` |
 |--------|-----------|--------------------------|---------------------------|
-| **Bundle Size (Minified)** | **🚀 4.4 KB** | 4.5 KB | 64.4 KB |
-| **Bundle Size (Gzipped)** | **🚀 1.7 KB** | 1.7 KB | 13.2 KB |
-| **Serialize Speed**| **⚡ 120 ops/s** | 87 ops/s | 16 ops/s |
-| **Parse Speed** | **40 ops/s** | 39 ops/s | 9 ops/s |
+| **Bundle Size (Minified)** | 4.9 KB | **🚀 4.5 KB** | 64.4 KB |
+| **Bundle Size (Gzipped)** | 1.9 KB | **🚀 1.7 KB** | 13.2 KB |
+| **Serialize Speed**| **⚡ 121 ops/s** | 87 ops/s | 16 ops/s |
+| **Parse Speed** | **⚡ 83 ops/s** | 39 ops/s | 9 ops/s |
 | **Payload (Standard)** | 1.03 MB | **0.69 MB** | 1.63 MB |
 | **Payload (Flat)** | 274 KB | **254 KB** | 274 KB |
 
-> **Verdict**: HyperToon is **~35% faster at serialization** than the nearest competitor and **~15x smaller** than the official library. It matches the competitor's Gzip size while offering superior performance and adhering to the official TOON specification.
+> **Verdict**: HyperToon is **~39% faster at serialization** and **~2.1x faster at parsing** than the nearest competitor, while being **~13x smaller** than the official library. It trades a tiny size margin against `json-toon` for dramatically superior throughput.
 
 ## Features
 
-- ⚡ **Hyper Optimized**: Cursor-based parser avoids memory spikes.
+- ⚡ **Hyper Optimized**: `charCodeAt`-based cursor parser avoids memory spikes and string allocations.
 - 🦕 **Bun Native**: Built with Bun for speed and modern standards.
 - 🔒 **Type-Safe**: `jsonify<T>()` provides full TypeScript support.
 - ✨ **Official Syntax**: Fully compliant with TOON `key: value` specification.
@@ -126,7 +126,8 @@ When dealing with **large datasets** in web applications, traditional JSON can b
 
 ### Key Benefits
 
-- **🚀 Faster Serialization**: Hypertoon is 14% faster than competitors and 6x faster than the official library
+- **🚀 Faster Serialization**: Hypertoon is ~39% faster than competitors and ~7x faster than the official library
+- **⚡ 2x Faster Parsing**: Over 2x the throughput of the nearest competitor at parsing TOON data
 - **📉 Bandwidth Savings**: Up to 60% smaller payloads for tabular data without gzip overhead
 - **⚡ Performance at Scale**: Cursor-based parser prevents garbage collection pauses with millions of records
 - **🔒 Type Safety**: Full TypeScript support with `jsonify<T>()` eliminates runtime surprises
@@ -175,7 +176,7 @@ const users = jsonify<User[]>(toonData);
 console.log(users[0].name); // Type-safe access
 ```
 
-**Result**: 54% smaller payload (293 KB vs 704 KB for json-toon, 1,075 KB for standard TOON) with faster parsing and full type safety.
+**Result**: 54% smaller payload (293 KB vs 704 KB for `json-toon`, 1,075 KB for `@toon-format/toon`) with faster parsing and full type safety.
 
 ## Contributing
 

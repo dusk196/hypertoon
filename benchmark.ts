@@ -39,10 +39,10 @@ const officialSize = Buffer.byteLength(officialString, 'utf8');
 const competitorSize = Buffer.byteLength(competitorString, 'utf8');
 
 console.log('\n📊 Payload Size (Standard Data):');
-console.log(`JSON:       ${(jsonSize / 1024).toFixed(2)} KB`);
-console.log(`HyperToon:  ${(hyperSize / 1024).toFixed(2)} KB (${((1 - hyperSize / jsonSize) * 100).toFixed(1)}% savings)`);
-console.log(`Official:   ${(officialSize / 1024).toFixed(2)} KB (${((1 - officialSize / jsonSize) * 100).toFixed(1)}% savings)`);
-console.log(`Competitor: ${(competitorSize / 1024).toFixed(2)} KB (${((1 - competitorSize / jsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`JSON:              ${(jsonSize / 1024).toFixed(2)} KB`);
+console.log(`HyperToon:         ${(hyperSize / 1024).toFixed(2)} KB (${((1 - hyperSize / jsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`@toon-format/toon: ${(officialSize / 1024).toFixed(2)} KB (${((1 - officialSize / jsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`json-toon:         ${(competitorSize / 1024).toFixed(2)} KB (${((1 - competitorSize / jsonSize) * 100).toFixed(1)}% savings)`);
 
 // 2. Serialization Speed
 console.log('\n⚡ Serialization Speed (ops/s):');
@@ -53,14 +53,14 @@ function measure(fn: () => void, name: string) {
     for (let i = 0; i < iter; i++) fn();
     const end = performance.now();
     const ops = 1000 / ((end - start) / iter);
-    console.log(`${name.padEnd(12)}: ${ops.toFixed(0)} ops/s`);
+    console.log(`${name.padEnd(18)}: ${ops.toFixed(0)} ops/s`);
     return ops;
 }
 
 measure(() => JSON.stringify(wrapper), 'JSON');
 measure(() => toonify(wrapper), 'HyperToon');
-measure(() => officialEncode(wrapper), 'Official');
-measure(() => competitorEncode(wrapper), 'Competitor');
+measure(() => officialEncode(wrapper), '@toon-format/toon');
+measure(() => competitorEncode(wrapper), 'json-toon');
 
 
 // 3. Parse Speed
@@ -73,8 +73,8 @@ const s4 = competitorString;
 
 measure(() => JSON.parse(s1), 'JSON');
 measure(() => jsonify(s2), 'HyperToon');
-measure(() => officialDecode(s3), 'Official');
-measure(() => competitorDecode(s4), 'Competitor');
+measure(() => officialDecode(s3), '@toon-format/toon');
+measure(() => competitorDecode(s4), 'json-toon');
 
 
 // 4. Flat Data Optimization (Best Case)
@@ -100,10 +100,10 @@ const fHyperSize = Buffer.byteLength(fHyper);
 const fOfficialSize = Buffer.byteLength(fOfficial);
 const fCompSize = Buffer.byteLength(fCompetitor);
 
-console.log(`JSON:       ${(fJsonSize / 1024).toFixed(2)} KB`);
-console.log(`HyperToon:  ${(fHyperSize / 1024).toFixed(2)} KB (${((1 - fHyperSize / fJsonSize) * 100).toFixed(1)}% savings)`);
-console.log(`Official:   ${(fOfficialSize / 1024).toFixed(2)} KB (${((1 - fOfficialSize / fJsonSize) * 100).toFixed(1)}% savings)`);
-console.log(`Competitor: ${(fCompSize / 1024).toFixed(2)} KB (${((1 - fCompSize / fJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`JSON:              ${(fJsonSize / 1024).toFixed(2)} KB`);
+console.log(`HyperToon:         ${(fHyperSize / 1024).toFixed(2)} KB (${((1 - fHyperSize / fJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`@toon-format/toon: ${(fOfficialSize / 1024).toFixed(2)} KB (${((1 - fOfficialSize / fJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`json-toon:         ${(fCompSize / 1024).toFixed(2)} KB (${((1 - fCompSize / fJsonSize) * 100).toFixed(1)}% savings)`);
 
 // 5. Primitive Array Optimization
 console.log('\n🔢 Large Primitive Array Optimization:');
@@ -122,10 +122,10 @@ const pHyperSize = Buffer.byteLength(pHyper);
 const pOfficialSize = Buffer.byteLength(pOfficial);
 const pCompSize = Buffer.byteLength(pCompetitor);
 
-console.log(`JSON:       ${(pJsonSize / 1024).toFixed(2)} KB`);
-console.log(`HyperToon:  ${(pHyperSize / 1024).toFixed(2)} KB (${((1 - pHyperSize / pJsonSize) * 100).toFixed(1)}% savings)`);
-console.log(`Official:   ${(pOfficialSize / 1024).toFixed(2)} KB (${((1 - pOfficialSize / pJsonSize) * 100).toFixed(1)}% savings)`);
-console.log(`Competitor: ${(pCompSize / 1024).toFixed(2)} KB (${((1 - pCompSize / pJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`JSON:              ${(pJsonSize / 1024).toFixed(2)} KB`);
+console.log(`HyperToon:         ${(pHyperSize / 1024).toFixed(2)} KB (${((1 - pHyperSize / pJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`@toon-format/toon: ${(pOfficialSize / 1024).toFixed(2)} KB (${((1 - pOfficialSize / pJsonSize) * 100).toFixed(1)}% savings)`);
+console.log(`json-toon:         ${(pCompSize / 1024).toFixed(2)} KB (${((1 - pCompSize / pJsonSize) * 100).toFixed(1)}% savings)`);
 
 // 6. Bundle Size (Minified & Gzipped)
 console.log('\n📦 Bundle Size:');
@@ -161,27 +161,28 @@ if (await offFile.exists()) {
 }
 
 if (htSize > 0) {
-    const minSaved = compSize > 0 ? ` (${((1 - htSize / compSize) * 100).toFixed(1)}% savings vs competitor)` : '';
-    console.log(`HyperToon  : ${(htSize / 1024).toFixed(2)} KB${minSaved}`);
-
-    const gzipSaved = compGzip > 0 ? ` (${((1 - htGzip / compGzip) * 100).toFixed(1)}% savings)` : '';
-    console.log(`Gzipped    : ${(htGzip / 1024).toFixed(2)} KB${gzipSaved}`);
+    console.log(`HyperToon          : ${(htSize / 1024).toFixed(2)} KB (minified)`);
+    console.log(`                     ${(htGzip / 1024).toFixed(2)} KB (gzipped)`);
 } else {
-    console.log('HyperToon  : (Build not found - run "bun run build")');
+    console.log('HyperToon          : (Build not found - run "bun run build")');
 }
 
 if (compSize > 0) {
-    console.log(`Competitor : ${(compSize / 1024).toFixed(2)} KB`);
-    console.log(`Gzipped    : ${(compGzip / 1024).toFixed(2)} KB`);
+    const minSaved = htSize > 0 ? ` (${((1 - htSize / compSize) * 100).toFixed(1)}% savings)` : '';
+    const gzipSaved = htGzip > 0 ? ` (${((1 - htGzip / compGzip) * 100).toFixed(1)}% savings)` : '';
+    console.log(`json-toon          : ${(compSize / 1024).toFixed(2)} KB (minified)${minSaved}`);
+    console.log(`                     ${(compGzip / 1024).toFixed(2)} KB (gzipped)${gzipSaved}`);
 } else {
-    console.log('Competitor : 4.6 KB (File not found - run "bun install")');
+    console.log('json-toon          : (File not found - run "bun install")');
 }
 
 if (offSize > 0) {
-    console.log(`Official   : ${(offSize / 1024).toFixed(2)} KB`);
-    console.log(`Gzipped    : ${(offGzip / 1024).toFixed(2)} KB`);
+    const minSaved = htSize > 0 ? ` (${((1 - htSize / offSize) * 100).toFixed(1)}% savings)` : '';
+    const gzipSaved = htGzip > 0 ? ` (${((1 - htGzip / offGzip) * 100).toFixed(1)}% savings)` : '';
+    console.log(`@toon-format/toon  : ${(offSize / 1024).toFixed(2)} KB (minified)${minSaved}`);
+    console.log(`                     ${(offGzip / 1024).toFixed(2)} KB (gzipped)${gzipSaved}`);
 } else {
-    console.log('Official   : 25.0 KB (File not found)');
+    console.log('@toon-format/toon  : (File not found)');
 }
 
 console.log('\nDone.');

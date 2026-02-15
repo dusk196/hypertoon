@@ -1,29 +1,43 @@
-export function toToon(data: unknown): string {
-    return serializeObject(data, 0);
+// Pre-computed indent lookup (up to 16 levels)
+const INDENTS: string[] = [];
+for (let i = 0; i < 17; i++) INDENTS[i] = '  '.repeat(i);
+
+// Hoisted regex for serializePrimitive
+const NEEDS_QUOTE = /[,#:\n\r\[\]{}]|^\s|\s$/;
+
+function getIndent(level: number): string {
+    return level < INDENTS.length ? INDENTS[level]! : '  '.repeat(level);
 }
 
-function serializeObject(obj: unknown, indentLevel: number): string {
+export function toToon(data: unknown): string {
+    return serializeObject(data, 0, true);
+}
+
+function serializeObject(obj: unknown, indentLevel: number, isRoot: boolean): string {
     if (obj === null || typeof obj !== 'object') {
         return '';
     }
 
     const record = obj as Record<string, unknown>;
-    const lines: string[] = [];
-    const indent = '  '.repeat(indentLevel);
+    const indent = getIndent(indentLevel);
+    let result = '';
 
     for (const [key, value] of Object.entries(record)) {
         if (value === undefined) continue;
 
+        if (result.length > 0) result += '\n';
+
         if (Array.isArray(value)) {
             const keys = getCommonKeys(value);
             if (keys) {
-                lines.push(`${indent}${key}[${value.length}]{${keys.join(',')}}:`);
+                result += `${indent}${key}[${value.length}]{${keys.join(',')}}:`;
+                const childIndent = getIndent(indentLevel + 1);
                 for (const item of value) {
                     const row = keys.map(k => {
                         const v = (item as any)[k];
                         return serializePrimitive(v);
                     }).join(',');
-                    lines.push(`${indent}  ${row}`);
+                    result += `\n${childIndent}${row}`;
                 }
             } else {
                 // Check if all items are primitives
@@ -32,34 +46,37 @@ function serializeObject(obj: unknown, indentLevel: number): string {
                 if (allPrimitives && value.length > 0) {
                     // Inline array: key[N]: val1,val2...
                     const items = value.map(v => serializePrimitive(v)).join(',');
-                    lines.push(`${indent}${key}[${value.length}]: ${items}`);
+                    result += `${indent}${key}[${value.length}]: ${items}`;
                 } else {
-                    lines.push(`${indent}${key}[${value.length}]:`);
+                    result += `${indent}${key}[${value.length}]:`;
+                    const childIndent = getIndent(indentLevel + 1);
                     for (const item of value) {
                         if (item && typeof item === 'object') {
-                            lines.push(`${indent}  -`);
-                            lines.push(serializeObject(item, indentLevel + 2));
+                            result += `\n${childIndent}-`;
+                            const nested = serializeObject(item, indentLevel + 2, false);
+                            if (nested.length > 0) result += `\n${nested}`;
                         } else {
                             // Mixed array or objects - use bullets for safety
-                            lines.push(`${indent}  - ${serializePrimitive(item)}`);
+                            result += `\n${childIndent}- ${serializePrimitive(item)}`;
                         }
                     }
                 }
             }
         } else if (value !== null && typeof value === 'object') {
-            lines.push(`${indent}${key}:`);
-            lines.push(serializeObject(value, indentLevel + 1));
+            result += `${indent}${key}:`;
+            const nested = serializeObject(value, indentLevel + 1, false);
+            if (nested.length > 0) result += `\n${nested}`;
         } else {
-            lines.push(`${indent}${key}: ${serializePrimitive(value)}`);
+            result += `${indent}${key}: ${serializePrimitive(value)}`;
         }
     }
 
-    return lines.join('\n');
+    return result;
 }
 
 function serializePrimitive(val: unknown): string {
     if (typeof val === 'object' && val !== null) return JSON.stringify(val);
-    if (typeof val === 'string' && (val === '' || !isNaN(Number(val)) || /[,#:\n\r\[\]{}]|^\s|\s$/.test(val))) return JSON.stringify(val);
+    if (typeof val === 'string' && (val === '' || !isNaN(Number(val)) || NEEDS_QUOTE.test(val))) return JSON.stringify(val);
     return String(val);
 }
 
@@ -69,12 +86,16 @@ function getCommonKeys(arr: unknown[]): string[] | null {
     if (!first || typeof first !== 'object' || Array.isArray(first)) return null;
 
     const keys = Object.keys(first as object);
-    if (!keys.length) return null;
+    const keyLen = keys.length;
+    if (!keyLen) return null;
 
     for (let i = 1; i < arr.length; i++) {
         const item = arr[i];
         if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
-        if (Object.keys(item as object).length !== keys.length || !keys.every(k => k in item)) return null;
+        if (Object.keys(item as object).length !== keyLen) return null;
+        for (let j = 0; j < keyLen; j++) {
+            if (!(keys[j]! in (item as object))) return null;
+        }
     }
     return keys;
 }

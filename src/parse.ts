@@ -1,5 +1,5 @@
 export function parseToon(toon: string): unknown {
-    const ctx = { input: toon, pos: 0, length: toon.length };
+    const ctx: Ctx = { input: toon, pos: 0, length: toon.length };
     skipEmpty(ctx);
     return parseObjectBlock(ctx, -1);
 }
@@ -8,6 +8,77 @@ interface Ctx {
     input: string;
     pos: number;
     length: number;
+}
+
+function getIndent(ctx: Ctx): number {
+    let spaces = 0;
+    let i = ctx.pos;
+    while (i < ctx.length) {
+        const c = ctx.input.charCodeAt(i);
+        if (c === 32) spaces++;
+        else if (c === 9) spaces += 4;
+        else break;
+        i++;
+    }
+    return spaces;
+}
+
+function peekIndent(ctx: Ctx): number {
+    let i = ctx.pos;
+    while (i < ctx.length) {
+        let spaces = 0;
+        while (i < ctx.length) {
+            const c = ctx.input.charCodeAt(i);
+            if (c === 32) spaces++;
+            else if (c === 9) spaces += 4;
+            else break;
+            i++;
+        }
+
+        if (i >= ctx.length) return 0;
+
+        const c = ctx.input.charCodeAt(i);
+        if (c === 10 || c === 13) {
+            if (c === 13 && ctx.input.charCodeAt(i + 1) === 10) i++;
+            i++;
+            continue;
+        }
+
+        if (c === 35) {
+            const nextNL = ctx.input.indexOf('\n', i);
+            if (nextNL === -1) return 0;
+            i = nextNL + 1;
+            continue;
+        }
+
+        return spaces;
+    }
+    return 0;
+}
+
+function isLineEmptyOrComment(ctx: Ctx, indentOffset: number): boolean {
+    const i = ctx.pos + indentOffset;
+    if (i >= ctx.length) return true;
+    const c = ctx.input.charCodeAt(i);
+    return c === 10 || c === 13 || c === 35;
+}
+
+function consumeLine(ctx: Ctx) {
+    const nl = ctx.input.indexOf('\n', ctx.pos);
+    ctx.pos = nl === -1 ? ctx.length : nl + 1;
+}
+
+function getLineEnd(ctx: Ctx): number {
+    const nl = ctx.input.indexOf('\n', ctx.pos);
+    return nl === -1 ? ctx.length : nl;
+}
+
+function skipEmpty(ctx: Ctx) {
+    while (ctx.pos < ctx.length) {
+        const indent = getIndent(ctx);
+        if (!isLineEmptyOrComment(ctx, indent)) break;
+        consumeLine(ctx);
+    }
 }
 
 function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknown> {
@@ -21,9 +92,7 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
             continue;
         }
 
-        if (indent <= parentIndent) {
-            break;
-        }
+        if (indent <= parentIndent) break;
 
         const lineEnd = getLineEnd(ctx);
         const lineContent = ctx.input.substring(ctx.pos + indent, lineEnd).trim();
@@ -37,43 +106,61 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
         const keyPart = lineContent.substring(0, colIndex).trim();
         const valPart = lineContent.substring(colIndex + 1).trim();
 
-        const arrayMatch = keyPart.match(/^(.+)\[(\d+)](\{.*})?$/);
+        // Manual array-key parsing instead of regex
+        let bracketStart = -1;
+        for (let i = keyPart.length - 1; i >= 0; i--) {
+            if (keyPart.charCodeAt(i) === 91) { bracketStart = i; break; }
+        }
 
-        if (arrayMatch) {
-            const key = arrayMatch[1]?.trim() ?? '';
-            const headersStr = arrayMatch[3];
+        if (bracketStart > 0) {
+            const bracketEnd = keyPart.indexOf(']', bracketStart + 1);
+            let isDigits = bracketEnd !== -1;
+            if (isDigits) {
+                for (let i = bracketStart + 1; i < bracketEnd; i++) {
+                    const c = keyPart.charCodeAt(i);
+                    if (c < 48 || c > 57) { isDigits = false; break; }
+                }
+            }
+            if (isDigits) {
+                const key = keyPart.substring(0, bracketStart).trim();
+                const afterBracket = bracketEnd! + 1;
+                const hasHeaders = afterBracket < keyPart.length && keyPart.charCodeAt(afterBracket) === 123 && keyPart.charCodeAt(keyPart.length - 1) === 125;
 
-            if (headersStr) {
-                // Tabular array always consumes following lines
-                consumeLine(ctx);
-                const headers = headersStr.slice(1, -1).split(',').map(h => h.trim());
-                obj[key] = parseTabularArray(ctx, headers, indent + 1);
-            } else if (valPart !== '') {
-                // Inline array: "key[N]: val1,val2"
-                consumeLine(ctx);
-                const items = splitSmart(valPart, ',');
-                obj[key] = items.map(item => parsePrimitive(stripComment(item)));
+                if (hasHeaders) {
+                    consumeLine(ctx);
+                    const headers = keyPart.substring(afterBracket + 1, keyPart.length - 1).split(',').map(h => h.trim());
+                    obj[key] = parseTabularArray(ctx, headers, indent + 1);
+                } else if (afterBracket >= keyPart.length) {
+                    if (valPart !== '') {
+                        consumeLine(ctx);
+                        const items = splitSmart(valPart);
+                        obj[key] = items.map(item => parsePrimitive(stripComment(item)));
+                    } else {
+                        consumeLine(ctx);
+                        obj[key] = parseListArray(ctx, indent + 1);
+                    }
+                } else {
+                    // Invalid format, treat as regular key
+                    consumeLine(ctx);
+                    obj[keyPart] = parsePrimitive(stripComment(valPart));
+                }
+                continue;
+            }
+        }
+
+        // Standard key-value
+        if (valPart === '') {
+            consumeLine(ctx);
+            const nextIndent = peekIndent(ctx);
+            if (nextIndent > indent) {
+                const result = parseObjectBlock(ctx, indent);
+                obj[keyPart] = Object.keys(result).length === 0 ? {} : result;
             } else {
-                // Multiline list array
-                consumeLine(ctx);
-                obj[key] = parseListArray(ctx, indent + 1);
+                obj[keyPart] = {};
             }
         } else {
-            const key = keyPart;
-            // Handle standard key-value
-            if (valPart === '') {
-                consumeLine(ctx); // Consume key line
-                const nextIndent = peekIndent(ctx);
-                if (nextIndent > indent) {
-                    const result = parseObjectBlock(ctx, indent);
-                    obj[key] = Object.keys(result).length === 0 ? {} : result;
-                } else {
-                    obj[key] = {};
-                }
-            } else {
-                consumeLine(ctx);
-                obj[key] = parsePrimitive(stripComment(valPart));
-            }
+            consumeLine(ctx);
+            obj[keyPart] = parsePrimitive(stripComment(valPart));
         }
     }
     return obj;
@@ -81,6 +168,7 @@ function parseObjectBlock(ctx: Ctx, parentIndent: number): Record<string, unknow
 
 function parseTabularArray(ctx: Ctx, headers: string[], minIndent: number): unknown[] {
     const result: unknown[] = [];
+    const headerLen = headers.length;
     while (ctx.pos < ctx.length) {
         const indent = getIndent(ctx);
         if (isLineEmptyOrComment(ctx, indent)) {
@@ -93,49 +181,42 @@ function parseTabularArray(ctx: Ctx, headers: string[], minIndent: number): unkn
         const lineContent = ctx.input.substring(ctx.pos + indent, lineEnd).trim();
         consumeLine(ctx);
 
-        const values = splitSmart(lineContent, ',');
+        const values = splitSmart(lineContent);
         const rowObj: Record<string, unknown> = {};
 
-        headers.forEach((h, i) => {
+        for (let i = 0; i < headerLen; i++) {
             if (i < values.length) {
-                rowObj[h] = parsePrimitive(stripComment(values[i] ?? ''));
+                rowObj[headers[i]!] = parsePrimitive(stripComment(values[i] ?? ''));
             }
-        });
+        }
         result.push(rowObj);
     }
     return result;
 }
 
-function splitSmart(str: string, delimiter: string): string[] {
+// Index-based splitSmart: uses substring slicing instead of char-by-char concat
+function splitSmart(str: string): string[] {
     const tokens: string[] = [];
-    let current = '';
+    let start = 0;
     let inQuote = false;
     let depth = 0;
 
     for (let i = 0; i < str.length; i++) {
-        const char = str[i];
+        const c = str.charCodeAt(i);
         if (inQuote) {
-            current += char;
-            if (char === '"' && str[i - 1] !== '\\') inQuote = false;
-        } else {
-            if (char === '"') {
-                inQuote = true;
-                current += char;
-            } else if (char === '{' || char === '[') {
-                depth++;
-                current += char;
-            } else if (char === '}' || char === ']') {
-                depth--;
-                current += char;
-            } else if (char === delimiter && depth === 0) {
-                tokens.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
+            if (c === 34 && str.charCodeAt(i - 1) !== 92) inQuote = false;
+        } else if (c === 34) {
+            inQuote = true;
+        } else if (c === 123 || c === 91) {
+            depth++;
+        } else if (c === 125 || c === 93) {
+            depth--;
+        } else if (c === 44 && depth === 0) {
+            tokens.push(str.substring(start, i).trim());
+            start = i + 1;
         }
     }
-    tokens.push(current.trim());
+    tokens.push(str.substring(start).trim());
     return tokens;
 }
 
@@ -158,14 +239,10 @@ function parseListArray(ctx: Ctx, minIndent: number): unknown[] {
                 const obj = parseObjectBlock(ctx, indent);
                 result.push(normalizeArrayLikeObject(obj));
             } else {
-                const rest = lineContent.substring(2);
-                result.push(parsePrimitive(stripComment(rest)));
+                result.push(parsePrimitive(stripComment(lineContent.substring(2))));
             }
         } else {
-            const colonIdx = lineContent.indexOf(':');
-            if (colonIdx !== -1) {
-                break;
-            }
+            if (lineContent.indexOf(':') !== -1) break;
             consumeLine(ctx);
             result.push(parsePrimitive(stripComment(lineContent)));
         }
@@ -190,103 +267,24 @@ function normalizeArrayLikeObject(obj: Record<string, unknown>): unknown {
     return arr;
 }
 
-function getIndent(ctx: Ctx): number {
-    let spaces = 0;
-    let i = ctx.pos;
-    while (i < ctx.length) {
-        const c = ctx.input[i];
-        if (c === ' ') spaces++;
-        else if (c === '\t') spaces += 4;
-        else break;
-        i++;
-    }
-    return spaces;
-}
-
-function peekIndent(ctx: Ctx): number {
-    let i = ctx.pos;
-    while (i < ctx.length) {
-        let spaces = 0;
-        while (i < ctx.length) {
-            const c = ctx.input[i];
-            if (c === ' ') spaces++;
-            else if (c === '\t') spaces += 4;
-            else break;
-            i++;
-        }
-
-        if (i >= ctx.length) return 0;
-
-        const c = ctx.input[i];
-        if (c === '\n' || c === '\r') {
-            if (c === '\r' && ctx.input[i + 1] === '\n') i++;
-            i++;
-            continue;
-        }
-
-        if (c === '#') {
-            const nextNL = ctx.input.indexOf('\n', i);
-            if (nextNL === -1) return 0;
-            i = nextNL + 1;
-            continue;
-        }
-
-        return spaces;
-    }
-    return 0;
-}
-
-function isLineEmptyOrComment(ctx: Ctx, indentOffset: number): boolean {
-    let i = ctx.pos + indentOffset;
-    if (i >= ctx.length) return true;
-    const c = ctx.input[i];
-    return c === '\n' || c === '\r' || c === '#';
-}
-
-function consumeLine(ctx: Ctx) {
-    const nl = ctx.input.indexOf('\n', ctx.pos);
-    if (nl === -1) {
-        ctx.pos = ctx.length;
-    } else {
-        ctx.pos = nl + 1;
-    }
-}
-
-function getLineEnd(ctx: Ctx): number {
-    const nl = ctx.input.indexOf('\n', ctx.pos);
-    return nl === -1 ? ctx.length : nl;
-}
-
-function skipEmpty(ctx: Ctx) {
-    while (ctx.pos < ctx.length) {
-        const indent = getIndent(ctx);
-        if (!isLineEmptyOrComment(ctx, indent)) break;
-        consumeLine(ctx);
-    }
-}
-
 function parsePrimitive(val: string): unknown {
     if (val === 'true') return true;
     if (val === 'false') return false;
     if (val === 'null') return null;
 
-    if ((val.startsWith('"') && val.endsWith('"'))) {
-        try {
-            return JSON.parse(val);
-        } catch (e) {
-            return val.slice(1, -1);
-        }
+    const first = val.charCodeAt(0);
+    const last = val.charCodeAt(val.length - 1);
+
+    if (first === 34 && last === 34) {
+        try { return JSON.parse(val); }
+        catch { return val.slice(1, -1); }
     }
 
-    if (val.startsWith("'") && val.endsWith("'")) {
-        return val.slice(1, -1);
-    }
+    if (first === 39 && last === 39) return val.slice(1, -1);
 
-    if ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}'))) {
-        try {
-            return JSON.parse(val);
-        } catch (e) {
-        }
+    if ((first === 91 && last === 93) || (first === 123 && last === 125)) {
+        try { return JSON.parse(val); }
+        catch { }
     }
 
     if (!isNaN(Number(val)) && val.trim() !== '') return Number(val);
@@ -294,7 +292,7 @@ function parsePrimitive(val: string): unknown {
     return val;
 }
 
-function stripComment(str: string) {
+function stripComment(str: string): string {
     const idx = str.indexOf('#');
     if (idx !== -1) return str.substring(0, idx).trim();
     return str;
